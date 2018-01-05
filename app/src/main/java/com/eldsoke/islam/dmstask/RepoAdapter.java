@@ -71,6 +71,11 @@ public class RepoAdapter extends RecyclerView.Adapter<RepoAdapter.MyViewHolder> 
 
     }
 
+    public void clear() {
+        this.repositoriesList.clear();
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         return repositoriesList.size();

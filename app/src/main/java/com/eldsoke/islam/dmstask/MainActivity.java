@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                 if (MyCustomApplication.isOnline()) {
                     swipeRefreshLayout.setRefreshing(true);
-                    getRepo(token, mPage, limit);
+                    getRepo(mPage, limit);
                     swipeRefreshLayout.setRefreshing(false);
                 }
 
@@ -62,22 +63,24 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
 
                 mPage++;
-                getRepo(token, mPage, limit);
+                getRepo(mPage, limit);
 
 
             }
         });
 
-        getRepo(token, mPage, limit);
+        getRepo(mPage, limit);
     }
 
-    void getRepo(String token, int page, int limit) {
+    void getRepo(int page, int limit) {
 
 
-        WebService.getInstance().getApi().getRepo(token, page, limit)
+        WebService.getInstance().getApi().getRepo(page, limit)
                 .enqueue(new Callback<List<Repositories>>() {
                     @Override
                     public void onResponse(Call<List<Repositories>> call, Response<List<Repositories>> response) {
+
+                        Log.e("res", response.toString());
 
                         if (response.body() != null) {
                             swipeRefreshLayout.setRefreshing(true);
@@ -92,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
                     @Override
                     public void onFailure(Call<List<Repositories>> call, Throwable t) {
+                        Log.e("fail", t.getMessage());
 
                     }
                 });
@@ -101,10 +105,21 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public void onRefresh() {
 
         if (MyCustomApplication.isOnline()) {
-
-            getRepo(token, mPage, limit);
             try {
-                WebService.getInstance().deletCach();
+                WebService.getInstance().deletCache();
+                repositoriesList.clear();
+            } catch (IOException e) {
+                Log.e("cache", e.getMessage());
+            }
+            getRepo(mPage, limit);
+            swipeRefreshLayout.setRefreshing(false);
+
+        } else {
+            repositoriesList.clear();
+            Toast.makeText(MainActivity.this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            swipeRefreshLayout.setRefreshing(false);
+            try {
+                WebService.getInstance().deletCache();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -38,7 +38,10 @@ public class WebService {
                                     .maxStale(7, TimeUnit.DAYS)
                                     .build();
                             request = request.newBuilder().cacheControl(cacheControl).build();
+                        } else {
+                            request = request.newBuilder().header("Cache-Control", "public, max-age=" + 60).build();
                         }
+
                         return chain.proceed(request);
                     }
                 })
@@ -63,9 +66,10 @@ public class WebService {
         return api;
     }
 
-    public void deletCach() throws IOException {
+    public void deletCache() throws IOException {
 
-        cache.delete();
+        cache.evictAll();
+
     }
 
 }
